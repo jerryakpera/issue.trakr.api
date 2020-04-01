@@ -11,7 +11,6 @@ A NodeJS API for an issue trakr API
 NodeJS, Express, MongoDB, JWT
 
 ### Contributing
-Currently not accepting contributions
 
 ### Versioning
 va.b.c
