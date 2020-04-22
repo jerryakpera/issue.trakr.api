@@ -51,6 +51,17 @@ module.exports = {
       req
     }) => value !== req.body.currentpassword)
   ],
+
+  forgotPasswordValidator: [
+    check("password", "password must be at least 8 characters").isLength({
+      min: 8
+    }),
+    check("confirmpassword", "passwords must be the same")
+    .exists()
+    .custom((value, {
+      req
+    }) => value === req.body.password),
+  ],
   
   registerUser: (user) => {
     const BCRYPT_SALT_ROUNDS = 12

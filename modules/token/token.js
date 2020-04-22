@@ -8,6 +8,7 @@ const RefreshToken = require("../../db/models/RefreshToken")
 
 module.exports = {
   createToken: (user) => {
+    console.log(0, config.jwtExpiryInSeconds)
     const tokenSecret = config.tokenSecret
     return jwt.sign({
       userID: user._id,
@@ -52,8 +53,8 @@ module.exports = {
 
   // Verify token middleware that ensures that the token userID exists in the DB and that the token is valid
   verify: (req, res, next) => {
-    const token = req.header("access-token")
-
+    let token = req.header("Authorization")
+    
     if (!token) {
       return res.json({
         status: 401,
@@ -79,7 +80,7 @@ module.exports = {
       res.json({
         status: 400,
         message: "Invalid token",
-        data: err
+        data: err.message
       })
     }
   },
@@ -202,12 +203,14 @@ module.exports = {
     })
   },
 
-  delete: (query) => {
-    return new Promise((resolve, reject) => {
-      RefreshToken.deleteOne(query, (err, docs) => {
-        if (err) reject(err)
-        resolve()
+  refresh: {
+    delete: (query) => {
+      return new Promise((resolve, reject) => {
+        RefreshToken.deleteOne(query, (err, docs) => {
+          if (err) reject(err)
+          resolve()
+        })
       })
-    })
+    }
   }
 }

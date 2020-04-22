@@ -1,6 +1,9 @@
 const passport = require("passport")
 // const authPassport = require("./auth.passport")
-
+const url = require("url")
+const EMAIL = require("../../services/email/email.service")
+const EMAILBODY = require("../../services/email/emailBody")
+const _ = require("../../modules/utils")
 const express = require("express")
 const router = express.Router()
 
@@ -13,10 +16,11 @@ const {
 
 router.get("/facebook", passport.authenticate("facebook"));
 
-router.post("/test-admin", TOKEN.verifyAdmin, (req, res) => {
-  const tokenData = TOKEN.getTokenData(req.header("access-token"))
+router.post("/tokentest", TOKEN.verify, (req, res) => {
   res.json({
-    tokenData
+    status: 200,
+    message: "Token still valid!",
+    data: {}
   })
 })
 
@@ -35,14 +39,21 @@ router.post("/test-admin", TOKEN.verifyAdmin, (req, res) => {
  *    properties:
  *      email: string
  *      password: string
+ *  Logout:
+ *    properties:
+ *      email: string
  *  ChangePassword:
  *    properties:
  *      currentpassword: string
  *      newpassword: string
  *      confirmnewpassword: string
+ *  ForgotPassword:
+ *    properties:
+ *      password: string
+ *      confirmpassword: string
  *  RefreshToken:
  *    properties:
- *      refresh-token: string
+ *      refreshToken: string
  * /api/v1/auth/register-user:
  *  post:
  *    tags: ["Authentication"]
@@ -78,37 +89,50 @@ router.post("/register-user", AUTH.validateNewUser, (req, res) => {
   }
 
   AUTH.registerUser(req.body)
-  .then(user => {
-    const token = TOKEN.createToken(user)
-    const expiresIn = TOKEN.getExpiresIn(token)
+    .then(user => {
+      const token = TOKEN.createToken(user)
+      const expiresIn = TOKEN.getExpiresIn(token)
 
-    TOKEN.createRefreshToken(user._id)
-    .then(refreshToken => {
-      res.header("access-token", token).json({
-        status: 200,
-        message: "User created",
-        data: {
-          "access-token": token,
-          "refresh-token": refreshToken.token,
-          expiresIn
-        }
-      })
+      TOKEN.createRefreshToken(user._id)
+        .then(refreshToken => {
+          return res.json({
+            status: 200,
+            message: "User created",
+            data: {
+              "accessToken": token,
+              "refreshToken": refreshToken.token,
+              expiresIn
+            }
+          })
+          // FUNCTION TO SEND ACTIVATION EMAIL
+          // const activationLink = EMAIL.generateActivationLink(user)
+          // EMAILBODY.email.completeRegistration(activationLink)
+          // .then(emailBody => {
+          //   EMAIL.sendEmail(user.email, `Welcome ${user.firstname} Issue.Trakr`, emailBody)
+          //   .then(() => {
+          //     console.log("Email Notification sent!")
+          //   })
+          //   .catch(err => {
+          //     console.log(err)
+          //   })
+
+          // })
+        })
+        .catch(err => {
+          return res.json({
+            status: 500,
+            message: err._message,
+            error: err.message
+          })
+        })
     })
     .catch(err => {
       return res.json({
-        status: 500,
+        status: 400,
         message: err._message,
         error: err.message
       })
     })
-  })
-  .catch(err => {
-    return res.json({
-      status: 400,
-      message: err._message,
-      error: err.message
-    })
-  })
 })
 
 /** 
@@ -146,37 +170,48 @@ router.post("/register-admin", AUTH.validateNewUser, (req, res) => {
   }
 
   AUTH.registerAdmin(req.body)
-  .then(user => {
-    const token = TOKEN.createToken(user)
-    const expiresIn = TOKEN.getExpiresIn(token)
+    .then(user => {
+      const token = TOKEN.createToken(user)
+      const expiresIn = TOKEN.getExpiresIn(token)
 
-    TOKEN.createRefreshToken(user._id)
-    .then(refreshToken => {
-      res.header("access-token", token).json({
-        status: 200,
-        message: "User created",
-        data: {
-          "access-token": token,
-          "refresh-token": refreshToken.token,
-          expiresIn
-        }
-      })
+      TOKEN.createRefreshToken(user._id)
+        .then(refreshToken => {
+          const activationLink = EMAIL.generateActivationLink(user)
+          EMAILBODY.email.completeRegistration(activationLink)
+            .then(emailBody => {
+              EMAIL.sendEmail(user.email, `Welcome ${user.firstname} Issue.Trakr`, emailBody)
+                .then(() => {
+                  console.log("Email Notification sent!")
+                })
+                .catch(err => {
+                  console.log(err)
+                })
+              return res.json({
+                status: 200,
+                message: "User created",
+                data: {
+                  "accessToken": token,
+                  "refreshToken": refreshToken.token,
+                  expiresIn
+                }
+              })
+            })
+        })
+        .catch(err => {
+          return res.json({
+            status: 500,
+            message: err._message,
+            error: err.message
+          })
+        })
     })
     .catch(err => {
       return res.json({
-        status: 500,
+        status: 400,
         message: err._message,
         error: err.message
       })
     })
-  })
-  .catch(err => {
-    return res.json({
-      status: 400,
-      message: err._message,
-      error: err.message
-    })
-  })
 })
 
 /** 
@@ -215,37 +250,48 @@ router.post("/register-superadmin", AUTH.validateNewUser, (req, res) => {
   }
 
   AUTH.registerSuperAdmin(req.body)
-  .then(user => {
-    const token = TOKEN.createToken(user)
-    const expiresIn = TOKEN.getExpiresIn(token)
+    .then(user => {
+      const token = TOKEN.createToken(user)
+      const expiresIn = TOKEN.getExpiresIn(token)
 
-    TOKEN.createRefreshToken(user._id)
-    .then(refreshToken => {
-      res.header("access-token", token).json({
-        status: 200,
-        message: "User created",
-        data: {
-          "access-token": token,
-          "refresh-token": refreshToken.token,
-          expiresIn
-        }
-      })
+      TOKEN.createRefreshToken(user._id)
+        .then(refreshToken => {
+          const activationLink = EMAIL.generateActivationLink(user)
+          EMAILBODY.email.completeRegistration(activationLink)
+            .then(emailBody => {
+              EMAIL.sendEmail(user.email, `Welcome ${user.firstname} Issue.Trakr`, emailBody)
+                .then(() => {
+                  console.log("Email Notification sent!")
+                })
+                .catch(err => {
+                  console.log(err)
+                })
+              return res.json({
+                status: 200,
+                message: "User created",
+                data: {
+                  "accessToken": token,
+                  "refreshToken": refreshToken.token,
+                  expiresIn
+                }
+              })
+            })
+        })
+        .catch(err => {
+          return res.json({
+            status: 500,
+            message: err._message,
+            error: err.message
+          })
+        })
     })
     .catch(err => {
       return res.json({
-        status: 500,
+        status: 400,
         message: err._message,
         error: err.message
       })
     })
-  })
-  .catch(err => {
-    return res.json({
-      status: 400,
-      message: err._message,
-      error: err.message
-    })
-  })
 })
 
 /** 
@@ -292,27 +338,80 @@ router.post("/login", AUTH.loginValidator, (req, res) => {
       })
     }
 
+    if (user.attempts === 3) {
+      // FUNCTION TO SEND PASSWORD RESET EMAIL
+      const passwordResetLink = EMAIL.generateResetPasswordLink(user)
+      EMAILBODY.email.resetPassword(passwordResetLink)
+      .then(emailBody => {
+        EMAIL.sendEmail(user.email, `Reset you Issue trakr password ${user.firstname}`, emailBody)
+        .then(() => {
+          return res.json({
+            status: 400,
+            message: "Your account has been locked. A reset password link has been sent to your email. ",
+            data: {}
+          })
+        })
+        .catch(err => {
+          console.log(err)
+        })
+      })
+      return
+    }
+
     AUTH.login({
       user: req.body,
       hash: user.hash
     }).then(status => {
       if (!status) {
-        return res.json({
-          status: 400,
-          message: "Wrong details",
-          data: {}
-        })
+        if (user.attempts < 3) {
+          user.attempts += 1
+          AUTH.updateUser(user)
+          .then(doc => {
+            return res.json({
+              status: 400,
+              message: "Wrong details",
+              data: {}
+            })
+          })
+          .catch(err => {
+            return res.json({
+              status: 500,
+              message: err._message,
+              error: err.message
+            })
+          })
+        } else if (user.attempts === 3) {
+          // FUNCTION TO SEND PASSWORD RESET EMAIL
+          const passwordResetLink = EMAIL.generateResetPasswordLink(user)
+          EMAILBODY.email.resetPassword(passwordResetLink)
+          .then(emailBody => {
+            EMAIL.sendEmail(user.email, `Reset you Issue trakr password ${user.firstname}`, emailBody)
+            .then(() => {
+              console.log("Email Notification sent!")
+              return res.json({
+                status: 400,
+                message: "Your account has been locked. A reset password link has been sent to your email. ",
+                data: {}
+              })
+            })
+            .catch(err => {
+              console.log(err)
+            })
+          })
+        }
+        return
       }
 
       const token = TOKEN.createToken(user)
       const expiresIn = TOKEN.getExpiresIn(token)
       TOKEN.createRefreshToken(user._id).then(refreshToken => {
-        res.header("access-token", token).json({
+        return res.json({
           status: 200,
           message: "User logged in",
           data: {
-            "access-token": token,
-            "refresh-token": refreshToken.token,
+            "flag": user.flag,
+            "accessToken": token,
+            "refreshToken": refreshToken.token,
             expiresIn
           }
         })
@@ -335,24 +434,67 @@ router.post("/login", AUTH.loginValidator, (req, res) => {
 
 /** 
  * @swagger
+ * /api/v1/auth/logout:
+ *  post:
+ *    tags: ["Authentication"]
+ *    description: Endpoint to log a user out
+ *    produces:
+ *      - application/json
+ *    parameters: [{
+ *      name: logout-user,
+ *      in: body,
+ *      description: Logout object,
+ *      required: true,
+ *      schema: {
+ *        $ref: '#/definitions/Logout'
+ *      }
+ *    }]
+ *    responses:
+ *      '200' :
+ *        description: Success
+ */
+
+router.post("/logout", TOKEN.verify, (req, res) => {
+  AUTH.findByEmail(req.body.email).then(user => {
+    TOKEN.refresh.delete({
+        user: user._id
+      })
+      .then(() => {
+        return res.json({
+          status: 200,
+          message: "User logged out!",
+          data: {}
+        })
+      })
+  }).catch(err => {
+    return res.json({
+      status: 500,
+      message: err._message,
+      error: err.message
+    })
+  })
+})
+
+/** 
+ * @swagger
  * /api/v1/auth/changepassword:
  *  post:
  *    tags: ["Authentication"]
- *    description: Endpoint to log a user in and generate access and refresh token
+ *    description: Endpoint to change a users password
  *    produces:
  *      - application/json
  *    parameters: [
  *      {
- *        name: login-user,
+ *        name: change password,
  *        in: body,
- *        description: Login object,
+ *        description: Change password object,
  *        required: true,
  *        schema: {
  *          $ref: '#/definitions/ChangePassword'
  *        }
  *      },
  *      {
- *        name: access-token,
+ *        name: accessToken,
  *        in: header,
  *        description: Access token,
  *        required: true
@@ -374,8 +516,8 @@ router.post("/changepassword", TOKEN.verify, AUTH.changePasswordValidator, (req,
     })
   }
 
-  const userDetails = TOKEN.getTokenData(req.header("access-token"))
-  
+  const userDetails = TOKEN.getTokenData(req.header("Authorization"))
+
   AUTH.findByUserID(userDetails.userID).then(user => {
     if (!user) {
       return res.json({
@@ -401,6 +543,76 @@ router.post("/changepassword", TOKEN.verify, AUTH.changePasswordValidator, (req,
         userID: user._id
       }
       AUTH.changePassword(newPassword).then(() => {
+          return res.json({
+            status: 200,
+            message: "Password changed",
+            data: {
+              userID: user._id
+            }
+          })
+        })
+        .catch(err => {
+          return res.json({
+            status: 500,
+            message: err.message,
+            data: {}
+          })
+        })
+    })
+  })
+})
+
+/** 
+ * @swagger
+ * /api/v1/auth/forgotpassword:
+ *  post:
+ *    tags: ["Authentication"]
+ *    description: Endpoint to reset a users password through email notification
+ *    produces:
+ *      - application/json
+ *    parameters: [
+ *      {
+ *        name: Forgot password,
+ *        in: body,
+ *        description: Forgot password,
+ *        required: true,
+ *        schema: {
+ *          $ref: '#/definitions/ForgotPassword'
+ *        }
+ *      },
+ *      {
+ *        name: accessToken,
+ *        in: header,
+ *        description: Access token,
+ *        required: true
+ *      },
+ *    ]
+ *    responses:
+ *      '200' :
+ *        description: Success
+ */
+router.post("/resetpassword", (req, res) => {
+  const userID = req.body._id
+  const password = req.body.password
+
+  AUTH.findByUserID(userID).then(user => {
+    if (!user) {
+      return res.json({
+        status: 400,
+        message: "Wrong details",
+        data: {}
+      })
+    }
+
+    const newPassword = {
+      newPassword: password,
+      userID
+    }
+    AUTH.changePassword(newPassword)
+    .then(() => {
+      user.attempts = 0
+      AUTH.updateUser(user)
+      .then(doc => {
         return res.json({
           status: 200,
           message: "Password changed",
@@ -412,9 +624,16 @@ router.post("/changepassword", TOKEN.verify, AUTH.changePasswordValidator, (req,
       .catch(err => {
         return res.json({
           status: 500,
-          message: err.message,
-          data: {}
+          message: err._message,
+          error: err.message
         })
+      })
+    })
+    .catch(err => {
+      return res.json({
+        status: 500,
+        message: err.message,
+        data: {}
       })
     })
   })
@@ -430,7 +649,7 @@ router.post("/changepassword", TOKEN.verify, AUTH.changePasswordValidator, (req,
  *      - application/json
  *    parameters: [
  *      {
- *        name: refresh-token,
+ *        name: refreshToken,
  *        in: body,
  *        description: Refresh token obj,
  *        required: true,
@@ -439,7 +658,7 @@ router.post("/changepassword", TOKEN.verify, AUTH.changePasswordValidator, (req,
  *        }
  *      },
  *      {
- *        name: access-token,
+ *        name: accessToken,
  *        in: header,
  *        description: Access token,
  *        required: true
@@ -450,59 +669,59 @@ router.post("/changepassword", TOKEN.verify, AUTH.changePasswordValidator, (req,
  *        description: Success
  */
 router.post("/refreshtoken", TOKEN.verify, (req, res) => {
-  const userDetails = TOKEN.getTokenData(req.header("access-token"))
+  const userDetails = TOKEN.getTokenData(req.header("Authorization"))
   AUTH.findByUserID(userDetails.userID).then(user => {
-    const refreshtoken = req.body.refreshToken
+      const refreshtoken = req.body.refreshToken
 
-    TOKEN.findRefreshToken({
-      userID: user._id,
-      refreshtoken
-    }).then(found => {
-      if (!found) {
-        return res.json({
-          status: 400,
-          message: "Incorrect token",
-          data: {}
-        })
-      }
-      if (refreshtoken !== found.token) {
-        return res.json({
-          status: 400,
-          message: "Invalid refresh token",
-          data: {}
-        })
-      }
+      TOKEN.findRefreshToken({
+        userID: user._id,
+        refreshtoken
+      }).then(found => {
+        if (!found) {
+          return res.json({
+            status: 400,
+            message: "Incorrect token",
+            data: {}
+          })
+        }
+        if (refreshtoken !== found.token) {
+          return res.json({
+            status: 400,
+            message: "Invalid refresh token",
+            data: {}
+          })
+        }
 
-      const token = TOKEN.createToken(user)
-      const expiresIn = TOKEN.getExpiresIn(token)
+        const token = TOKEN.createToken(user)
+        const expiresIn = TOKEN.getExpiresIn(token)
 
-      TOKEN.createRefreshToken(user._id).then(refreshToken => {
-        res.header("access-token", token).json({
-          status: 200,
-          message: "Token refreshed",
-          data: {
-            "access-token": token,
-            "refresh-token": refreshToken.token,
-            expiresIn
-          }
-        })
-      }).catch(err => {
-        return res.json({
-          status: 500,
-          message: "Internal server error. Try again.",
-          error: err.message,
-          data: {}
+        TOKEN.createRefreshToken(user._id).then(refreshToken => {
+          res.json({
+            status: 200,
+            message: "Token refreshed",
+            data: {
+              "accessToken": token,
+              "refreshToken": refreshToken.token,
+              expiresIn
+            }
+          })
+        }).catch(err => {
+          return res.json({
+            status: 500,
+            message: "Internal server error. Try again.",
+            error: err.message,
+            data: {}
+          })
         })
       })
     })
-  })
-  .catch(err => {
-    return res.json({
-      status: 500,
-      message: err.message,
-      data: {}
+    .catch(err => {
+      return res.json({
+        status: 500,
+        message: err.message,
+        data: {}
+      })
     })
-  })
 })
 
 /** 
@@ -515,7 +734,7 @@ router.post("/refreshtoken", TOKEN.verify, (req, res) => {
  *      - application/json
  *    parameters: [
  *      {
- *        name: refresh-token,
+ *        name: refreshToken,
  *        in: body,
  *        description: user obj,
  *        required: true,
@@ -524,7 +743,7 @@ router.post("/refreshtoken", TOKEN.verify, (req, res) => {
  *        }
  *      },
  *      {
- *        name: access-token,
+ *        name: accessToken,
  *        in: header,
  *        description: Access token,
  *        required: true
@@ -535,20 +754,28 @@ router.post("/refreshtoken", TOKEN.verify, (req, res) => {
  *        description: Success
  */
 router.post("/edit", TOKEN.verify, (req, res) => {
-  const userDetails = TOKEN.getTokenData(req.header("access-token"))
+  const userDetails = TOKEN.getTokenData(req.header("Authorization"))
   AUTH.findByUserID(userDetails.userID)
-  .then(user => {
-    for (let [key, value] of Object.entries(req.body)) {
-      user[key] = req.body[key]
-    }
+    .then(user => {
+      for (let [key, value] of Object.entries(req.body)) {
+        user[key] = req.body[key]
+      }
 
-    AUTH.updateUser(user)
-    .then(savedUser => {
-      return res.json({
-        status: 200,
-        message: "User updated",
-        data: {}
-      })
+      AUTH.updateUser(user)
+        .then(savedUser => {
+          return res.json({
+            status: 200,
+            message: "User updated",
+            data: {}
+          })
+        })
+        .catch(err => {
+          return res.json({
+            status: 500,
+            message: err.message,
+            data: {}
+          })
+        })
     })
     .catch(err => {
       return res.json({
@@ -557,14 +784,6 @@ router.post("/edit", TOKEN.verify, (req, res) => {
         data: {}
       })
     })
-  })
-  .catch(err => {
-    return res.json({
-      status: 500,
-      message: err.message,
-      data: {}
-    })
-  })
 })
 
 /** 
@@ -577,7 +796,7 @@ router.post("/edit", TOKEN.verify, (req, res) => {
  *      - application/json
  *    parameters: [
  *      {
- *        name: access-token,
+ *        name: accessToken,
  *        in: header,
  *        description: Access token,
  *        required: true
@@ -588,18 +807,26 @@ router.post("/edit", TOKEN.verify, (req, res) => {
  *        description: Success
  */
 router.post("/deactivate", TOKEN.verify, (req, res) => {
-  const userDetails = TOKEN.getTokenData(req.header("access-token"))
+  const userDetails = TOKEN.getTokenData(req.header("Authorization"))
   AUTH.findByUserID(userDetails.userID)
-  .then(user => {
-    user.flag = 2
+    .then(user => {
+      user.flag = 2
 
-    AUTH.updateUser(user)
-    .then(savedUser => {
-      return res.json({
-        status: 200,
-        message: "User deactivated",
-        data: {}
-      })
+      AUTH.updateUser(user)
+        .then(savedUser => {
+          return res.json({
+            status: 200,
+            message: "User deactivated",
+            data: {}
+          })
+        })
+        .catch(err => {
+          return res.json({
+            status: 500,
+            message: err.message,
+            data: {}
+          })
+        })
     })
     .catch(err => {
       return res.json({
@@ -608,14 +835,40 @@ router.post("/deactivate", TOKEN.verify, (req, res) => {
         data: {}
       })
     })
-  })
-  .catch(err => {
-    return res.json({
-      status: 500,
-      message: err.message,
-      data: {}
+})
+
+router.get("/activate", (req, res) => {
+  const link = _.getDataFromURL(req.originalUrl)
+  const userID = _.decodeJSON(link).userID
+
+  AUTH.findByUserID(userID)
+    .then(user => {
+      user.flag = 1
+
+      AUTH.updateUser(user)
+        .then(savedUser => {
+          // SEND THE USER TO THE FRONT END PAGE
+          return res.json({
+            status: 200,
+            message: "User activated. Send user to front end page",
+            data: {}
+          })
+        })
+        .catch(err => {
+          return res.json({
+            status: 500,
+            message: err.message,
+            data: {}
+          })
+        })
     })
-  })
+    .catch(err => {
+      return res.json({
+        status: 500,
+        message: err.message,
+        data: {}
+      })
+    })
 })
 
 /** 
@@ -628,7 +881,7 @@ router.post("/deactivate", TOKEN.verify, (req, res) => {
  *      - application/json
  *    parameters: [
  *      {
- *        name: access-token,
+ *        name: accessToken,
  *        in: header,
  *        description: Access token,
  *        required: true
@@ -639,16 +892,26 @@ router.post("/deactivate", TOKEN.verify, (req, res) => {
  *        description: Success
  */
 router.post("/remove", TOKEN.verify, (req, res) => {
-  const userDetails = TOKEN.getTokenData(req.header("access-token"))
-  TOKEN.delete({user: userDetails.userID})
-  .then(() => {
-    AUTH.deleteUser(userDetails.userID)
+  const userDetails = TOKEN.getTokenData(req.header("Authorization"))
+  TOKEN.refresh.delete({
+      user: userDetails.userID
+    })
     .then(() => {
-      return res.json({
-        status: 200,
-        message: "User removed",
-        data: {}
-      })
+      AUTH.deleteUser(userDetails.userID)
+        .then(() => {
+          return res.json({
+            status: 200,
+            message: "User removed",
+            data: {}
+          })
+        })
+        .catch(err => {
+          return res.json({
+            status: 500,
+            message: err.message,
+            data: {}
+          })
+        })
     })
     .catch(err => {
       return res.json({
@@ -657,14 +920,6 @@ router.post("/remove", TOKEN.verify, (req, res) => {
         data: {}
       })
     })
-  })
-  .catch(err => {
-    return res.json({
-      status: 500,
-      message: err.message,
-      data: {}
-    })
-  })
 })
 
 /** 
@@ -683,7 +938,7 @@ router.post("/remove", TOKEN.verify, (req, res) => {
  *        required: true
  *      },
  *      {
- *        name: access-token,
+ *        name: accessToken,
  *        in: header,
  *        description: Access token,
  *        required: true
@@ -695,36 +950,36 @@ router.post("/remove", TOKEN.verify, (req, res) => {
  */
 router.post("/details", TOKEN.verify, (req, res) => {
   AUTH.findByEmail(req.body.email)
-  .then(user => {
-    if (!user) {
+    .then(user => {
+      if (!user) {
+        return res.json({
+          status: 400,
+          message: "User doesnt exist",
+          data: {}
+        })
+      }
       return res.json({
-        status: 400,
-        message: "User doesnt exist",
+        status: 200,
+        message: "User details",
+        data: {
+          firstname: user.firstname,
+          last: user.lastname,
+          email: user.email,
+          createdOn: user.createdAt,
+          updatedOn: user.updatedAt,
+          flag: user.flag,
+          role: user.role,
+          userID: user._id
+        }
+      })
+    })
+    .catch(err => {
+      return res.json({
+        status: 500,
+        message: err.message,
         data: {}
       })
-    }
-    return res.json({
-      status: 200,
-      message: "User details",
-      data: {
-        firstname: user.firstname,
-        last: user.lastname,
-        email: user.email,
-        createdOn: user.createdAt,
-        updatedOn: user.updatedAt,
-        flag: user.flag,
-        role: user.role,
-        userID: user._id
-      }
     })
-  })
-  .catch(err => {
-    return res.json({
-      status: 500,
-      message: err.message,
-      data: {}
-    })
-  })
 })
 
 module.exports = router

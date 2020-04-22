@@ -11,4 +11,6 @@ module.exports = {
   tokenSecret: process.env.TOKENSECRET,
   refreshTokenSecret: process.env.REFRESHTOKENSECRET,
   refreshTokenExpiresIn: process.env.REFRESHTOKENEXPIRESIN,
+  emailAccount: process.env.EMAILACCOUNT,
+  emailPassword: process.env.EMAILPASSWORD
 }
