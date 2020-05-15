@@ -34,8 +34,13 @@ const swaggerDocs = swaggerJSDoc(swaggerOptions);
 app.use("/api-docs", swaggerUI.serve, swaggerUI.setup(swaggerDocs))
 
 const baseURL = config.baseURL
+
+// ROUTES
 const authRoute = require("./api/auth/auth");
 app.use(`${baseURL}/auth`, authRoute);
+
+const graphQLRoute = require("./api/graphql/graphql");
+app.use(`${baseURL}/graphql`, graphQLRoute);
 
 app.use((req, res, next) => {
   const error = new Error("Not found");

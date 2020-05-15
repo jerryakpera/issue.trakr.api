@@ -8,7 +8,6 @@ const RefreshToken = require("../../db/models/RefreshToken")
 
 module.exports = {
   createToken: (user) => {
-    console.log(0, config.jwtExpiryInSeconds)
     const tokenSecret = config.tokenSecret
     return jwt.sign({
       userID: user._id,
@@ -62,7 +61,7 @@ module.exports = {
         data: {}
       })
     }
-
+    
     try {
       const verified = jwt.verify(token, config.tokenSecret)
       AUTH.findByUserID(verified.userID).then(user => {

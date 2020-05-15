@@ -7,6 +7,7 @@ module.exports = {
   fbClientSecret: process.env.FACEBOOK_CLIENT_SECRET,
   fbCallbackURL: process.env.FACEBOOK_CALLBACK_URL,
   dbURL: process.env.DBURL,
+  liveDBURL: process.env.LIVEDBURL,
   jwtExpiryInSeconds: process.env.JWTEXPIRYSECONDS,
   tokenSecret: process.env.TOKENSECRET,
   refreshTokenSecret: process.env.REFRESHTOKENSECRET,

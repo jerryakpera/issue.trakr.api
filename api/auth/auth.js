@@ -30,8 +30,7 @@ router.post("/tokentest", TOKEN.verify, (req, res) => {
  * definitions:
  *  User:
  *    properties:
- *      firstname: string
- *      lastname: string
+ *      username: string
  *      email: string
  *      password: string
  *      confirmpassword: string
@@ -99,6 +98,7 @@ router.post("/register-user", AUTH.validateNewUser, (req, res) => {
             status: 200,
             message: "User created",
             data: {
+              "userID": user._id,
               "accessToken": token,
               "refreshToken": refreshToken.token,
               expiresIn
@@ -108,7 +108,7 @@ router.post("/register-user", AUTH.validateNewUser, (req, res) => {
           // const activationLink = EMAIL.generateActivationLink(user)
           // EMAILBODY.email.completeRegistration(activationLink)
           // .then(emailBody => {
-          //   EMAIL.sendEmail(user.email, `Welcome ${user.firstname} Issue.Trakr`, emailBody)
+          //   EMAIL.sendEmail(user.email, `Welcome ${user.username} Issue.Trakr`, emailBody)
           //   .then(() => {
           //     console.log("Email Notification sent!")
           //   })
@@ -179,7 +179,7 @@ router.post("/register-admin", AUTH.validateNewUser, (req, res) => {
           const activationLink = EMAIL.generateActivationLink(user)
           EMAILBODY.email.completeRegistration(activationLink)
             .then(emailBody => {
-              EMAIL.sendEmail(user.email, `Welcome ${user.firstname} Issue.Trakr`, emailBody)
+              EMAIL.sendEmail(user.email, `Welcome ${user.username} Issue.Trakr`, emailBody)
                 .then(() => {
                   console.log("Email Notification sent!")
                 })
@@ -190,6 +190,7 @@ router.post("/register-admin", AUTH.validateNewUser, (req, res) => {
                 status: 200,
                 message: "User created",
                 data: {
+                  "userID": user._id,
                   "accessToken": token,
                   "refreshToken": refreshToken.token,
                   expiresIn
@@ -259,7 +260,7 @@ router.post("/register-superadmin", AUTH.validateNewUser, (req, res) => {
           const activationLink = EMAIL.generateActivationLink(user)
           EMAILBODY.email.completeRegistration(activationLink)
             .then(emailBody => {
-              EMAIL.sendEmail(user.email, `Welcome ${user.firstname} Issue.Trakr`, emailBody)
+              EMAIL.sendEmail(user.email, `Welcome ${user.username} Issue.Trakr`, emailBody)
                 .then(() => {
                   console.log("Email Notification sent!")
                 })
@@ -270,6 +271,7 @@ router.post("/register-superadmin", AUTH.validateNewUser, (req, res) => {
                 status: 200,
                 message: "User created",
                 data: {
+                  "userID": user._id,
                   "accessToken": token,
                   "refreshToken": refreshToken.token,
                   expiresIn
@@ -343,7 +345,7 @@ router.post("/login", AUTH.loginValidator, (req, res) => {
       const passwordResetLink = EMAIL.generateResetPasswordLink(user)
       EMAILBODY.email.resetPassword(passwordResetLink)
       .then(emailBody => {
-        EMAIL.sendEmail(user.email, `Reset you Issue trakr password ${user.firstname}`, emailBody)
+        EMAIL.sendEmail(user.email, `Reset you Issue trakr password ${user.username}`, emailBody)
         .then(() => {
           return res.json({
             status: 400,
@@ -385,7 +387,7 @@ router.post("/login", AUTH.loginValidator, (req, res) => {
           const passwordResetLink = EMAIL.generateResetPasswordLink(user)
           EMAILBODY.email.resetPassword(passwordResetLink)
           .then(emailBody => {
-            EMAIL.sendEmail(user.email, `Reset you Issue trakr password ${user.firstname}`, emailBody)
+            EMAIL.sendEmail(user.email, `Reset you Issue trakr password ${user.username}`, emailBody)
             .then(() => {
               console.log("Email Notification sent!")
               return res.json({
@@ -409,6 +411,7 @@ router.post("/login", AUTH.loginValidator, (req, res) => {
           status: 200,
           message: "User logged in",
           data: {
+            "userID": user._id,
             "flag": user.flag,
             "accessToken": token,
             "refreshToken": refreshToken.token,
@@ -962,8 +965,7 @@ router.post("/details", TOKEN.verify, (req, res) => {
         status: 200,
         message: "User details",
         data: {
-          firstname: user.firstname,
-          last: user.lastname,
+          username: user.username,
           email: user.email,
           createdOn: user.createdAt,
           updatedOn: user.updatedAt,

@@ -9,11 +9,11 @@ const {
 
 module.exports = {
   validateNewUser: [
-    // firstname must not be empty
-    check('firstname', 'Firstname cannot be empty').not().isEmpty(),
+    // Username must not be empty
+    check('username', 'Username cannot be empty').not().isEmpty(),
 
-    // lastname must not be empty
-    check('lastname', 'Lastname cannot be empty').not().isEmpty(),
+    // Email must not be empty
+    check('email', 'Email cannot be empty').not().isEmpty(),
     
     check("email", "Your email is not valid").isEmail(),
     // password must be at least 5 chars long
