@@ -1,5 +1,6 @@
 const Board = require("../../../db/models/Board")
 const UserBoard = require("../../../db/models/UserBoards")
+const RoadMap = require("../../../db/models/RoadMap")
 
 const BOARD = {
   formatBoards: (boards) => {
@@ -63,7 +64,6 @@ const board = (args) => {
   const query = {_id: args.getBoardInput._id}
   return Board.findOne(query)
   .then(result => {
-    console.log(result)
     return BOARD.formatBoard(result)
   })
   .catch(err => {
@@ -107,6 +107,18 @@ const createBoard = (args) => {
           }
         );
       }
+      const roadmap = new RoadMap({
+        goal: "Default goal",
+        board: result._id
+      })
+    
+      return roadmap.save()
+      .then(result => {
+        return result
+      })
+      .catch(err => {
+        return err
+      })
     })
     .catch(err => {
       throw err
@@ -151,7 +163,7 @@ const removeBoard = (args) => {
     }
   })
   .catch(err => {
-    console.log(1, err)
+    return err
   })
 }
 

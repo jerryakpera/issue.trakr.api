@@ -5,14 +5,17 @@ const schema = buildSchema(`
     task(id: String!): Task
     tasks: [Task]
     boards: [Board] 
+    roadmap(getRoadmapInput: GetRoadmapInput): RoadMap 
     userboards(userBoardInput: UserBoardInput): UserBoard
     board(getBoardInput: GetBoardInput): Board
   }
 
   type Mutation {
     createTask(taskInput: TaskInput): Task
+    createRoadmap(roadmapInput: RoadmapInput): RoadMap
     createBoard(boardInput: BoardInput): Board
     removeBoard(removeBoardInput: RemoveBoard): BoardRemoved
+    editRoadmap(editRoadmapInput: EditRoadmap): RoadMap
     editBoard(editBoardInput: EditBoard): Board
     editTask(editTaskInput: EditTask): Task
   }
@@ -42,6 +45,11 @@ const schema = buildSchema(`
     flag: Int
   }
   
+  input EditRoadmap {
+    board: String!
+    goal: String!
+  }
+  
   input RemoveBoard {
     _id: String!
     user: String!
@@ -60,6 +68,11 @@ const schema = buildSchema(`
     message: String!
   }
 
+  input RoadmapInput {
+    goal: String!
+    board: ID!
+  }
+
   input BoardInput {
     userID: String!
     name: String!
@@ -72,6 +85,10 @@ const schema = buildSchema(`
 
   input GetBoardInput {
     _id: ID!
+  }
+
+  input GetRoadmapInput {
+    board: ID!
   }
 
   type Board {
@@ -90,6 +107,14 @@ const schema = buildSchema(`
     _id: ID!
     user: ID!
     boards: [Board!]
+    createdAt: String!
+    updatedAt: String!
+  }
+
+  type RoadMap {
+    _id: ID!
+    board: ID!
+    goal: String!
     createdAt: String!
     updatedAt: String!
   }

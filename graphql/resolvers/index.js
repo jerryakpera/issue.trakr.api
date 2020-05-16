@@ -14,6 +14,11 @@ const {
   createBoard
 } = require("./boards/boards")
 
+const {
+  roadmap,
+  editRoadmap
+} = require("./roadmap/roadmap")
+
 module.exports = {
   task,
   tasks,
@@ -24,5 +29,7 @@ module.exports = {
   userboards,
   editBoard,
   removeBoard,
-  createBoard
+  createBoard,
+  roadmap,
+  editRoadmap
 }
