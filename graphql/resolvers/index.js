@@ -1,35 +1,33 @@
 const {
-  task,
-  tasks,
+  createWord,
+  createQuote,
+  createJournal,
+  createGoodThings,
+  createBadThings,
+  createProgress,
+  createRetrospect,
+  fetchUserRetrospects
+} = require("./content/content")
+
+const {
+  milestones,
+  createMilestone,
   createTask,
-  editTask
-} = require("./tasks/tasks")
-
-const {
-  board,
-  boards,
-  userboards,
-  editBoard,
-  removeBoard,
-  createBoard
-} = require("./boards/boards")
-
-const {
-  roadmap,
-  editRoadmap
-} = require("./roadmap/roadmap")
+  deleteMilestone
+} = require("./milestone/milestone")
 
 module.exports = {
-  task,
-  tasks,
+  createWord,
+  createQuote,
+  createJournal,
+  createGoodThings,
+  createBadThings,
+  createProgress,
+  createRetrospect,
+  fetchUserRetrospects,
+
+  milestones,
+  createMilestone,
   createTask,
-  editTask,
-  board,
-  boards,
-  userboards,
-  editBoard,
-  removeBoard,
-  createBoard,
-  roadmap,
-  editRoadmap
+  deleteMilestone,
 }

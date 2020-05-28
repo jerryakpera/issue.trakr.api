@@ -88,51 +88,60 @@ router.post("/register-user", AUTH.validateNewUser, (req, res) => {
   }
 
   AUTH.registerUser(req.body)
-    .then(user => {
-      const token = TOKEN.createToken(user)
-      const expiresIn = TOKEN.getExpiresIn(token)
+  .then(user => {
+    const token = TOKEN.createToken(user)
+    const expiresIn = TOKEN.getExpiresIn(token)
 
-      TOKEN.createRefreshToken(user._id)
-        .then(refreshToken => {
-          return res.json({
-            status: 200,
-            message: "User created",
-            data: {
-              "userID": user._id,
-              "accessToken": token,
-              "refreshToken": refreshToken.token,
-              expiresIn
-            }
-          })
-          // FUNCTION TO SEND ACTIVATION EMAIL
-          // const activationLink = EMAIL.generateActivationLink(user)
-          // EMAILBODY.email.completeRegistration(activationLink)
-          // .then(emailBody => {
-          //   EMAIL.sendEmail(user.email, `Welcome ${user.username} Issue.Trakr`, emailBody)
-          //   .then(() => {
-          //     console.log("Email Notification sent!")
-          //   })
-          //   .catch(err => {
-          //     console.log(err)
-          //   })
+    TOKEN.createRefreshToken(user._id)
+    .then(refreshToken => {
+      return res.json({
+        status: 200,
+        message: "User created",
+        data: {
+          "username": user.username,
+          "userID": user._id,
+          "flag": user.flag,
+          "accessToken": token,
+          "refreshToken": refreshToken.token,
+          expiresIn
+        }
+      })
+      // FUNCTION TO SEND ACTIVATION EMAIL
+      // const activationLink = EMAIL.generateActivationLink(user)
+      // EMAILBODY.email.completeRegistration(activationLink)
+      // .then(emailBody => {
+      //   EMAIL.sendEmail(user.email, `Welcome ${user.username} Issue.Trakr`, emailBody)
+      //   .then(() => {
+      //     console.log("Email Notification sent!")
+      //   })
+      //   .catch(err => {
+      //     console.log(err)
+      //   })
 
-          // })
-        })
-        .catch(err => {
-          return res.json({
-            status: 500,
-            message: err._message,
-            error: err.message
-          })
-        })
+      // })
     })
     .catch(err => {
       return res.json({
-        status: 400,
+        status: 500,
         message: err._message,
         error: err.message
       })
     })
+  })
+  .catch(err => {
+    if (err.errors.email.message) {
+      return res.json({
+        status: 400,
+        message: err.errors.email.message,
+        error: err.message
+      })
+    }
+    return res.json({
+      status: 400,
+      message: err._message,
+      error: err.message
+    })
+  })
 })
 
 /** 
@@ -190,6 +199,7 @@ router.post("/register-admin", AUTH.validateNewUser, (req, res) => {
                 status: 200,
                 message: "User created",
                 data: {
+                  "flag": user.flag,
                   "userID": user._id,
                   "accessToken": token,
                   "refreshToken": refreshToken.token,
@@ -411,6 +421,7 @@ router.post("/login", AUTH.loginValidator, (req, res) => {
           status: 200,
           message: "User logged in",
           data: {
+            "username": user.username,
             "userID": user._id,
             "flag": user.flag,
             "accessToken": token,
@@ -769,7 +780,9 @@ router.post("/edit", TOKEN.verify, (req, res) => {
           return res.json({
             status: 200,
             message: "User updated",
-            data: {}
+            data: {
+              username: savedUser.username
+            }
           })
         })
         .catch(err => {

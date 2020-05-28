@@ -2,119 +2,182 @@ const { buildSchema } = require("graphql")
 
 const schema = buildSchema(`
   type Query {
-    task(id: String!): Task
-    tasks: [Task]
-    boards: [Board] 
-    roadmap(getRoadmapInput: GetRoadmapInput): RoadMap 
-    userboards(userBoardInput: UserBoardInput): UserBoard
-    board(getBoardInput: GetBoardInput): Board
+    milestones(getMilestonesInput: GetMilestonesInput): [Milestone]
+    fetchUserRetrospects(fetchRetrospectsInput: FetchRetrospectsInput): [Retrospect]
   }
 
   type Mutation {
+    createWord(wordInput: WordInput): Word
+    createQuote(quoteInput: QuoteInput): Quote
+    createJournal(journalInput: JournalInput): Journal
+    createGoodThings(goodThingsInput: GoodThingsInput): GoodThings
+    createBadThings(badThingsInput: BadThingsInput): BadThings
+    createProgress(progressInput: ProgressInput): Progress
+    createRetrospect(retrospectInput: RetrospectInput): Retrospect
+    createMilestone(milestoneInput: MilestoneInput): Milestone
+    deleteMilestone(deleteMilestoneInput: DeleteMilestoneInput): Boolean
     createTask(taskInput: TaskInput): Task
-    createRoadmap(roadmapInput: RoadmapInput): RoadMap
-    createBoard(boardInput: BoardInput): Board
-    removeBoard(removeBoardInput: RemoveBoard): BoardRemoved
-    editRoadmap(editRoadmapInput: EditRoadmap): RoadMap
-    editBoard(editBoardInput: EditBoard): Board
-    editTask(editTaskInput: EditTask): Task
   }
 
-  input UserBoardInput {
-    userID: String!
+  input FetchRetrospectsInput {
+    user: String!
+  }
+
+  input RetrospectInput {
+    title: String!
+    rating: Int!
+    goodthings: String
+    badthings: String
+    progress: String
+    journal: String
+    quote: String
+    word: String
+    user: String!
+  }
+
+  type Retrospect {
+    _id: ID!
+    title: String!
+    rating: Int!
+    goodthings: GoodThings
+    badthings: BadThings
+    progress: Progress
+    journal: Journal
+    quote: Quote
+    word: Word
+    user: String!
+    displayDate: String!
+    createdAt: String!
+    updatedAt: String!
+  }
+
+  input ProgressInput {
+    one: String
+    two: String
+    three: String
+    user: String!
+  }
+
+  type Progress {
+    _id: ID!
+    one: String
+    two: String
+    three: String
+    createdAt: String!
+    updatedAt: String!
+  }
+
+  input BadThingsInput {
+    one: String
+    two: String
+    three: String
+    user: String!
+  }
+
+  type BadThings {
+    _id: ID!
+    one: String
+    two: String
+    three: String
+    createdAt: String!
+    updatedAt: String!
+  }
+
+  input GoodThingsInput {
+    one: String
+    two: String
+    three: String
+    user: String!
+  }
+
+  type GoodThings {
+    _id: ID!
+    one: String
+    two: String
+    three: String
+    createdAt: String!
+    updatedAt: String!
+  }
+
+  input JournalInput {
+    journal: String
+    user: String!
+  }
+
+  type Journal {
+    _id: ID!
+    journal: String
+    createdAt: String!
+    updatedAt: String!
+  }
+
+  input QuoteInput {
+    text: String!
+    author: String
+    user: String!
+  }
+
+  type Quote {
+    _id: ID!
+    text: String!
+    author: String
+    createdAt: String!
+    updatedAt: String!
+  }
+
+  input WordInput {
+    word: String!
+    definition: String!
+    user: String!
+  }
+
+  type Word {
+    _id: ID!
+    word: String!
+    definition: String!
+    createdAt: String!
+    updatedAt: String!
+  }
+
+  input GetMilestonesInput {
+    user: String!
+  }
+
+  input DeleteMilestoneInput {
+    milestoneID: String!
+  }
+
+  input MilestoneInput {
+    name: String!
+    group: Int!
+    user: String!
+  }
+
+  type Milestone {
+    _id: ID!
+    name: String!
+    user: String!
+    group: Int!
+    tasks: [Task]
+    createdAt: String!
+    updatedAt: String!
   }
 
   input TaskInput {
     name: String!
-    pomodoro: Boolean!
-  }
-
-  input EditTask {
-    _id: String!
-    name: String!
-    pomodoro: Boolean!
-    flag: Int!
-  }
-  
-  input EditBoard {
-    _id: String!
-    name: String
-    about: String
-    color: String
-    visibility: String
-    flag: Int
-  }
-  
-  input EditRoadmap {
-    board: String!
-    goal: String!
-  }
-  
-  input RemoveBoard {
-    _id: String!
     user: String!
+    milestone: String!
+    dueTime: String
+    dueDate: String
   }
 
   type Task {
     _id: ID!
     name: String!
-    flag: Int!
-    pomodoro: Boolean!
-    createdAt: String!
-    updatedAt: String!
-  }
-
-  type BoardRemoved {
-    message: String!
-  }
-
-  input RoadmapInput {
-    goal: String!
-    board: ID!
-  }
-
-  input BoardInput {
-    userID: String!
-    name: String!
-    about: String
-    visibility: String
-    color: String
-    due: String
-    flag: Int!
-  }
-
-  input GetBoardInput {
-    _id: ID!
-  }
-
-  input GetRoadmapInput {
-    board: ID!
-  }
-
-  type Board {
-    _id: ID!
-    name: String!
-    about: String
-    color: String
-    due: String
-    visibility: String
-    flag: Int!
-    createdAt: String!
-    updatedAt: String!
-  }
-
-  type UserBoard {
-    _id: ID!
-    user: ID!
-    boards: [Board!]
-    createdAt: String!
-    updatedAt: String!
-  }
-
-  type RoadMap {
-    _id: ID!
-    board: ID!
-    goal: String!
+    user: String!
+    completed: Boolean!
+    dueTime: String
+    dueDate: String
     createdAt: String!
     updatedAt: String!
   }

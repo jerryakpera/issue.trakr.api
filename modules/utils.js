@@ -19,4 +19,7 @@ module.exports = {
     const decoded = base64.decode(string)
     return JSON.parse(decoded)
   },
+  formatDate: datestring => {
+    console.log(moment(datestring))
+  }
 }

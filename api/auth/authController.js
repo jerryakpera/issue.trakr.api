@@ -35,10 +35,10 @@ module.exports = {
   changePasswordValidator: [
     // password must be at least 5 chars long
     check("currentpassword", "password must be at least 8 characters").isLength({
-      min: 8
+      min: 7
     }),
     check("newpassword", "password must be at least 8 characters").isLength({
-      min: 8
+      min: 7
     }),
     check("confirmnewpassword", "passwords must be the same")
     .exists()

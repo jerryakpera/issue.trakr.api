@@ -27,6 +27,15 @@ const tasks = () => {
   })
 }
 
+const milestoneTasks = (args) => {
+  const query = {milestone: args.milestoneTaskInput.milestoneID}
+  return Task.find(query)
+  .then(results => TASK.formatTasks(results))
+  .catch(err => {
+    throw err
+  })
+}
+
 const task = (id) => {
   const query = {_id: id.id}
   return Task.findOne(query)
@@ -40,7 +49,8 @@ const createTask = (args) => {
   const task = new Task({
     name: args.taskInput.name,
     flag: 0,
-    pomodoro: args.taskInput.pomodoro
+    pomodoro: args.taskInput.pomodoro,
+    milestone: args.taskInput.milestone
   })
   
   return task.save()
@@ -58,6 +68,7 @@ const editTask = (args) => {
     name: args.editTaskInput.name,
     pomodoro: args.editTaskInput.pomodoro,
     flag: args.editTaskInput.flag,
+    milestone: args.editTaskInput.milestone
   }
 
   const query = {_id: args.editTaskInput._id}
@@ -73,6 +84,7 @@ const editTask = (args) => {
 module.exports = {
   task,
   tasks,
+  milestoneTasks,
   createTask,
   editTask
 }
