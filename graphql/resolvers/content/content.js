@@ -57,6 +57,49 @@ const createWord = (args) => {
   })
 }
 
+const addVocabToUser = (args) => {
+  const newVocab = args.userVocabInput.vocab
+  const query = {user: args.userVocabInput.user}
+
+  return UserContent.findOne(query)
+  .then(userContent => {
+    if (userContent.words.findIndex(vocab => vocab == newVocab) < 0) {
+      userContent.words.push(newVocab)
+
+      return userContent.save()
+      .then(() => {
+        return Word.findOne({_id: newVocab})
+        .then(addedVocab => {
+          return addedVocab
+        })
+      })
+    }
+    return Word.findOne({_id: newVocab})
+    .then(addedVocab => {
+      return addedVocab
+    })
+  })
+}
+
+const removeVocabFromUser = (args) => {
+  const removeVocab = args.userVocabInput.vocab
+  const query = {user: args.userVocabInput.user}
+
+  return UserContent.findOne(query)
+  .then(userContent => {
+    const index = userContent.words.findIndex(vocab => vocab == removeVocab)
+    userContent.words.splice(index, 1)
+
+    return userContent.save()
+    .then(() => {
+      return Word.findOne({_id: removeVocab})
+      .then(addedVocab => {
+        return addedVocab
+      })
+    })
+  })
+}
+
 const createQuote = (args) => {
   const newQuote = new Quote({
     text: args.quoteInput.text,
@@ -303,7 +346,6 @@ const createRetrospect = (args) => {
     progress: args.retrospectInput.progress,
     journal: args.retrospectInput.journal,
     quote: args.retrospectInput.quote,
-    word: args.retrospectInput.quote,
     user: args.retrospectInput.user,
   })
 
@@ -324,13 +366,69 @@ const fetchUserRetrospects = (args) => {
   .populate("journal")
   .populate("progresses")
   .populate("quote")
-  .populate("word")
   .exec()
   .then(retrospects => {
     return retrospects.map(retrospect => {
       retrospect.displayDate = new Date(retrospect.createdAt).toDateString()
       return retrospect
     })
+  })
+  .catch(err => {
+    return err
+  })
+}
+
+const fetchUserWords = (args) => {
+  const query = {user: args.fetchUserWordsInput.user}
+  return UserContent.findOne(query)
+  .populate("words")
+  .exec()
+  .then(userContent => {
+    return userContent.words.map(word => word)
+  })
+  .catch(err => {
+    return err
+  })
+}
+
+const fetchWords = () => {
+  return Word.find()
+  .then(words => {
+    return words
+  })
+  .catch(err => {
+    return err
+  })
+}
+
+const fetchHomeBoard = (args) => {
+  const query = {user: args.fetchHomeBoardInput.user}
+  
+  return Retrospect.find(query)
+  .populate("goodthings")
+  .populate("journal")
+  .populate("progresses")
+  .exec()
+  .then(retrospects => {
+    retrospects.sort((a, b) => a - b ? -1 : 1)
+    
+    const journals = retrospects.map(retrospect => {
+      let journal = {
+        _id: retrospect._id,
+        title: retrospect.title,
+        journal: retrospect.journal.journal,
+        goodthings: retrospect.goodthings,
+        displayDate: (retrospect.createdAt).toDateString(),
+        rating: retrospect.rating
+      }
+
+      journal.progress = Progress.findById(retrospect.progress)
+      .then(progress => {
+        return progress
+      })
+      return journal
+    })
+    return journals[0]
   })
   .catch(err => {
     return err
@@ -346,4 +444,9 @@ module.exports = {
   createProgress,
   createRetrospect,
   fetchUserRetrospects,
+  fetchHomeBoard,
+  fetchUserWords,
+  fetchWords,
+  addVocabToUser,
+  removeVocabFromUser
 }

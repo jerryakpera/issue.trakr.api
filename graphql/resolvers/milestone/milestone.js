@@ -1,3 +1,5 @@
+const _ = require("../../../modules/utils")
+
 const MileStone = require("../../../db/models/Milestone")
 const Task = require("../../../db/models/Task")
 
@@ -7,7 +9,37 @@ const milestones = (args) => {
   .populate("tasks")
   .exec()
   .then(results => {
-    return results
+    const milestones = results.map(result => {
+      result.tasks = result.tasks.map(task => {
+        if(task.dueDate && !task.completed) {
+          task.remainingDays = _.getDifferenceInTime(task.dueDate)
+        }
+
+        return task
+      })
+
+      return result
+    })
+
+    return milestones
+  })
+  .catch(err => {
+    throw err
+  })
+}
+
+const userTasks = (args) => {
+  const query = {user: args.getTasksInput.user}
+  return Task.find(query)
+  .then(results => {
+    console.log(results)
+    return results.map(task => {
+      if(task.dueDate && !task.completed) {
+        task.remainingDays = _.getDifferenceInTime(task.dueDate)
+      }
+
+      if (task.remainingDays <= 3) return task
+    }).filter(task => task)
   })
   .catch(err => {
     throw err
@@ -30,11 +62,68 @@ const createMilestone = (args) => {
   })
 }
 
+const editMilestone = (args) => {
+  const query = { _id: args.editMilestoneInput.milestoneID }
+  
+  return MileStone.findOne(query)
+  .then(milestone => {
+    for (let [key, value] of Object.entries(args.editMilestoneInput)) {
+      milestone[key] = value
+    }
+
+    return milestone.save()
+    .then(savedMilestone => {
+      return savedMilestone
+    })
+  })
+}
+
 const deleteMilestone = (args) => {
   const query = {_id: args.deleteMilestoneInput.milestoneID}
-  return MileStone.deleteOne(query)
-  .then(() => {
-    return true
+  return MileStone.findOne(query)
+  .then(milestone => {
+    milestone.tasks.forEach(task => {
+      const taskQuery = {_id: task}
+      Task.deleteOne(taskQuery)
+      .then(() => {
+      })
+      .catch(err => {
+        return err
+      })
+    })
+    return MileStone.deleteOne(query)
+    .then(() => {
+      return true
+    })
+    .catch(err => {
+      return err
+    })
+  })
+
+}
+
+const deleteTask = (args) => {
+  const query = {_id: args.deleteTaskInput.taskID}
+  const milestoneQuery = {_id: args.deleteTaskInput.milestoneID}
+  return MileStone.findOne(milestoneQuery)
+  .then(milestone => {
+    const index = milestone.tasks.findIndex(task => {
+      return args.deleteTaskInput.taskID == task
+    })
+    milestone.tasks.splice(index, 1)
+     return milestone.save()
+    .then(() => {
+      return Task.deleteOne(query)
+      .then(() => {
+        return true
+      })
+      .catch(err => {
+        return err
+      })
+    })
+    .catch(err => {
+      return err
+    })
   })
   .catch(err => {
     return err
@@ -75,6 +164,30 @@ const createTask = (args) => {
   })
 }
 
+const editTask = (args) => {
+  const query = {_id: args.editTaskInput._id}
+
+  const editedTask = {
+    ...args.editTaskInput
+  }
+
+  return Task.findOne(query)
+  .then(task => {
+    task.name = editedTask.name
+    task.completed = editedTask.completed
+    task.dueTime = editedTask.dueTime
+    task.dueDate = editedTask.dueDate
+
+    return task.save()
+    .then(savedTask => {
+      return savedTask
+    })
+    .catch(err => {
+      return err
+    })
+  })
+}
+
 // const editMilestone = (args) => {
 //   const query = {board: args.editMilestoneInput.board}
 
@@ -95,7 +208,11 @@ const createTask = (args) => {
 
 module.exports = {
   createMilestone,
+  editMilestone,
   deleteMilestone,
+  deleteTask,
   createTask,
-  milestones
+  editTask,
+  milestones,
+  userTasks,
 }

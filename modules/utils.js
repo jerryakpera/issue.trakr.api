@@ -1,6 +1,7 @@
 const base64 = require("base-64")
 const utf8 = require("utf8")
 const url = require("url")
+const moment = require("moment")
 
 module.exports = {
   encodeJSON: string => {
@@ -21,5 +22,18 @@ module.exports = {
   },
   formatDate: datestring => {
     console.log(moment(datestring))
+  },
+  getDifferenceInTime: date => {
+    const [dYear, dMonth, dDay] = date.split("/")
+    const today = {
+      year: new Date().getFullYear(),
+      month: new Date().getMonth(),
+      day: new Date().getDate()
+    }
+
+    const a = moment([dYear, dMonth - 1, dDay])
+    const b = moment([today.year, today.month, today.day])
+
+    return a.diff(b, 'days')
   }
 }

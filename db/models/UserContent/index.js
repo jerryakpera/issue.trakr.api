@@ -1,7 +1,7 @@
 const mongoose = require("mongoose")
 const uniqueValidator = require("mongoose-unique-validator")
 
-const userWordSchema = new mongoose.Schema({
+const userContentSchema = new mongoose.Schema({
   user: {
     type: mongoose.Schema.Types.ObjectId,
     ref: 'users'
@@ -36,5 +36,5 @@ const userWordSchema = new mongoose.Schema({
 })
 
 
-userWordSchema.plugin(uniqueValidator)
-module.exports = mongoose.model("usercontent", userWordSchema)
+userContentSchema.plugin(uniqueValidator)
+module.exports = mongoose.model("usercontent", userContentSchema)
