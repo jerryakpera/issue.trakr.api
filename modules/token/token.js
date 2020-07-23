@@ -5,30 +5,35 @@ const AUTH = require("../../api/auth/authController")
 const RefreshToken = require("../../db/models/RefreshToken")
 // const _ = require("../../services/util")
 
+const env = require('../../config/env')
 
 module.exports = {
   createToken: (user) => {
-    const tokenSecret = config.tokenSecret
+    const tokenSecret = env === "prod" ? process.env.TOKENSECRET : config.tokenSecret
     return jwt.sign({
       userID: user._id,
       role: user.role
     }, tokenSecret, {
-      expiresIn: config.jwtExpiryInSeconds
+      expiresIn: env === "prod" ? process.env.JWTEXPIRESINSECONDS : config.jwtExpiryInSeconds
     })
   },
 
   createRefreshToken: (userID) => {
-    const refreshTokenSecret = config.refreshTokenSecret
+    const refreshTokenSecret = env === "prod" ? process.env.REFRESHTOKENSECRET : config.refreshTokenSecret
     const now = new Date()
 
     return new Promise((resolve, reject) => {
       // RefreshToken
       const refreshToken = {
         userID,
-        token: jwt.sign({userID}, refreshTokenSecret),
-        expiresIn: now.setDate(now.getDate() + config.refreshTokenExpiresIn)
+        token: jwt.sign({
+          userID
+        }, refreshTokenSecret),
+        expiresIn: now.setDate(now.getDate() + env === "prod" ? process.env.REFRESHTOKENEXPIRESIN : config.refreshTokenExpiresIn)
       }
-      RefreshToken.findOneAndUpdate({user: userID}, refreshToken, {
+      RefreshToken.findOneAndUpdate({
+        user: userID
+      }, refreshToken, {
         new: true,
         useFindAndModify: false,
         upsert: true
@@ -42,18 +47,18 @@ module.exports = {
   },
 
   getExpiresIn: (token) => {
-    return jwt.verify(token, config.tokenSecret).exp
+    return jwt.verify(token, env === "prod" ? process.env.TOKENSECRET : config.tokenSecret).exp
   },
 
   getTokenData: (token) => {
-    const verified = jwt.verify(token, config.tokenSecret)
+    const verified = jwt.verify(token, env === "prod" ? process.env.TOKENSECRET : config.tokenSecret)
     return verified
   },
 
   // Verify token middleware that ensures that the token userID exists in the DB and that the token is valid
   verify: (req, res, next) => {
     let token = req.header("Authorization")
-    
+
     if (!token) {
       return res.json({
         status: 401,
@@ -61,9 +66,9 @@ module.exports = {
         data: {}
       })
     }
-    
+
     try {
-      const verified = jwt.verify(token, config.tokenSecret)
+      const verified = jwt.verify(token, env === "prod" ? process.env.TOKENSECRET : config.tokenSecret)
       AUTH.findByUserID(verified.userID).then(user => {
         if (!user) {
           return res.json({
@@ -86,7 +91,7 @@ module.exports = {
 
   verifyAdmin: (req, res, next) => {
     const token = req.header("access-token")
-    
+
     if (!token) {
       return res.json({
         status: 401,
@@ -96,7 +101,7 @@ module.exports = {
     }
 
     try {
-      const verified = jwt.verify(token, config.tokenSecret)
+      const verified = jwt.verify(token, env === "prod" ? process.env.TOKENSECRET : config.tokenSecret)
       AUTH.findByUserID(verified.userID).then(user => {
         if (!user) {
           return res.json({
@@ -128,7 +133,7 @@ module.exports = {
 
   verifySuperAdmin: (req, res, next) => {
     const token = req.header("access-token")
-    
+
     if (!token) {
       return res.json({
         status: 401,
@@ -138,7 +143,7 @@ module.exports = {
     }
 
     try {
-      const verified = jwt.verify(token, config.tokenSecret)
+      const verified = jwt.verify(token, env === "prod" ? process.env.TOKENSECRET : config.tokenSecret)
       AUTH.findByUserID(verified.userID).then(user => {
         if (!user) {
           return res.json({
@@ -147,7 +152,7 @@ module.exports = {
             data: {}
           })
         }
-        
+
         if (user.role > 0) {
           return res.json({
             status: 401,
@@ -169,7 +174,7 @@ module.exports = {
   },
 
   getID: (token) => {
-    const verified = jwt.verify(token, config.tokenSecret)
+    const verified = jwt.verify(token, env === "prod" ? process.env.TOKENSECRET : config.tokenSecret)
     return new Promise((resolve, reject) => {
       resolve(verified.userID)
     })
@@ -178,27 +183,31 @@ module.exports = {
   findRefreshToken: (userID) => {
     return new Promise((resolve, reject) => {
       RefreshToken
-      .findOne({user: userID.userID})
-      .then(refreshToken => {
-        //this will log all of the users with each of their posts 
-        resolve(refreshToken);
-      })
-      .catch(err => {
-        reject(err);
-      })
+        .findOne({
+          user: userID.userID
+        })
+        .then(refreshToken => {
+          //this will log all of the users with each of their posts 
+          resolve(refreshToken);
+        })
+        .catch(err => {
+          reject(err);
+        })
     })
   },
 
   findAndPopulateRefreshToken: (userID) => {
     return new Promise((resolve, reject) => {
       RefreshToken
-      .find({user: userID})
-      .populate('user')
-      .exec((err, refreshToken) => {
-        if(err) reject(err);
-        //this will log all of the users with each of their posts 
-        else resolve(refreshToken);
-      })
+        .find({
+          user: userID
+        })
+        .populate('user')
+        .exec((err, refreshToken) => {
+          if (err) reject(err);
+          //this will log all of the users with each of their posts 
+          else resolve(refreshToken);
+        })
     })
   },
 
