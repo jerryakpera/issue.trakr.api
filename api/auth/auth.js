@@ -88,60 +88,63 @@ router.post("/register-user", AUTH.validateNewUser, (req, res) => {
   }
 
   AUTH.registerUser(req.body)
-  .then(user => {
-    const token = TOKEN.createToken(user)
-    const expiresIn = TOKEN.getExpiresIn(token)
+    .then(user => {
+      const token = TOKEN.createToken(user)
+      const expiresIn = TOKEN.getExpiresIn(token)
 
-    TOKEN.createRefreshToken(user._id)
-    .then(refreshToken => {
-      return res.json({
-        status: 200,
-        message: "User created",
-        data: {
-          "username": user.username,
-          "userID": user._id,
-          "flag": user.flag,
-          "accessToken": token,
-          "refreshToken": refreshToken.token,
-          expiresIn
-        }
-      })
-      // FUNCTION TO SEND ACTIVATION EMAIL
-      // const activationLink = EMAIL.generateActivationLink(user)
-      // EMAILBODY.email.completeRegistration(activationLink)
-      // .then(emailBody => {
-      //   EMAIL.sendEmail(user.email, `Welcome ${user.username} Issue.Trakr`, emailBody)
-      //   .then(() => {
-      //     console.log("Email Notification sent!")
-      //   })
-      //   .catch(err => {
-      //     console.log(err)
-      //   })
+      TOKEN.createRefreshToken(user._id)
+        .then(refreshToken => {
+          return res.json({
+            status: 200,
+            message: "User created",
+            data: {
+              "username": user.username,
+              "userID": user._id,
+              "flag": user.flag,
+              "accessToken": token,
+              "refreshToken": refreshToken.token,
+              expiresIn
+            }
+          })
+          // FUNCTION TO SEND ACTIVATION EMAIL
+          // const activationLink = EMAIL.generateActivationLink(user)
+          // EMAILBODY.email.completeRegistration(activationLink)
+          // .then(emailBody => {
+          //   EMAIL.sendEmail(user.email, `Welcome ${user.username} Issue.Trakr`, emailBody)
+          //   .then(() => {
+          //     console.log("Email Notification sent!")
+          //   })
+          //   .catch(err => {
+          //     console.log(err)
+          //   })
 
-      // })
+          // })
+        })
+        .catch(err => {
+          return res.json({
+            status: 500,
+            message: err._message,
+            error: err.message
+          })
+        })
     })
     .catch(err => {
+      console.log({
+        err
+      })
+      if (err.errors.email.message) {
+        return res.json({
+          status: 400,
+          message: err.errors.email.message,
+          error: err.message
+        })
+      }
       return res.json({
-        status: 500,
+        status: 400,
         message: err._message,
         error: err.message
       })
     })
-  })
-  .catch(err => {
-    if (err.errors.email.message) {
-      return res.json({
-        status: 400,
-        message: err.errors.email.message,
-        error: err.message
-      })
-    }
-    return res.json({
-      status: 400,
-      message: err._message,
-      error: err.message
-    })
-  })
 })
 
 /** 
@@ -354,19 +357,19 @@ router.post("/login", AUTH.loginValidator, (req, res) => {
       // FUNCTION TO SEND PASSWORD RESET EMAIL
       const passwordResetLink = EMAIL.generateResetPasswordLink(user)
       EMAILBODY.email.resetPassword(passwordResetLink)
-      .then(emailBody => {
-        EMAIL.sendEmail(user.email, `Reset you Issue trakr password ${user.username}`, emailBody)
-        .then(() => {
-          return res.json({
-            status: 400,
-            message: "Your account has been locked. A reset password link has been sent to your email. ",
-            data: {}
-          })
+        .then(emailBody => {
+          EMAIL.sendEmail(user.email, `Reset you Issue trakr password ${user.username}`, emailBody)
+            .then(() => {
+              return res.json({
+                status: 400,
+                message: "Your account has been locked. A reset password link has been sent to your email. ",
+                data: {}
+              })
+            })
+            .catch(err => {
+              console.log(err)
+            })
         })
-        .catch(err => {
-          console.log(err)
-        })
-      })
       return
     }
 
@@ -378,38 +381,38 @@ router.post("/login", AUTH.loginValidator, (req, res) => {
         if (user.attempts < 3) {
           user.attempts += 1
           AUTH.updateUser(user)
-          .then(doc => {
-            return res.json({
-              status: 400,
-              message: "Wrong details",
-              data: {}
-            })
-          })
-          .catch(err => {
-            return res.json({
-              status: 500,
-              message: err._message,
-              error: err.message
-            })
-          })
-        } else if (user.attempts === 3) {
-          // FUNCTION TO SEND PASSWORD RESET EMAIL
-          const passwordResetLink = EMAIL.generateResetPasswordLink(user)
-          EMAILBODY.email.resetPassword(passwordResetLink)
-          .then(emailBody => {
-            EMAIL.sendEmail(user.email, `Reset you Issue trakr password ${user.username}`, emailBody)
-            .then(() => {
-              console.log("Email Notification sent!")
+            .then(doc => {
               return res.json({
                 status: 400,
-                message: "Your account has been locked. A reset password link has been sent to your email. ",
+                message: "Wrong details",
                 data: {}
               })
             })
             .catch(err => {
-              console.log(err)
+              return res.json({
+                status: 500,
+                message: err._message,
+                error: err.message
+              })
             })
-          })
+        } else if (user.attempts === 3) {
+          // FUNCTION TO SEND PASSWORD RESET EMAIL
+          const passwordResetLink = EMAIL.generateResetPasswordLink(user)
+          EMAILBODY.email.resetPassword(passwordResetLink)
+            .then(emailBody => {
+              EMAIL.sendEmail(user.email, `Reset you Issue trakr password ${user.username}`, emailBody)
+                .then(() => {
+                  console.log("Email Notification sent!")
+                  return res.json({
+                    status: 400,
+                    message: "Your account has been locked. A reset password link has been sent to your email. ",
+                    data: {}
+                  })
+                })
+                .catch(err => {
+                  console.log(err)
+                })
+            })
         }
         return
       }
@@ -623,33 +626,33 @@ router.post("/resetpassword", (req, res) => {
       userID
     }
     AUTH.changePassword(newPassword)
-    .then(() => {
-      user.attempts = 0
-      AUTH.updateUser(user)
-      .then(doc => {
-        return res.json({
-          status: 200,
-          message: "Password changed",
-          data: {
-            userID: user._id
-          }
-        })
+      .then(() => {
+        user.attempts = 0
+        AUTH.updateUser(user)
+          .then(doc => {
+            return res.json({
+              status: 200,
+              message: "Password changed",
+              data: {
+                userID: user._id
+              }
+            })
+          })
+          .catch(err => {
+            return res.json({
+              status: 500,
+              message: err._message,
+              error: err.message
+            })
+          })
       })
       .catch(err => {
         return res.json({
           status: 500,
-          message: err._message,
-          error: err.message
+          message: err.message,
+          data: {}
         })
       })
-    })
-    .catch(err => {
-      return res.json({
-        status: 500,
-        message: err.message,
-        data: {}
-      })
-    })
   })
 })
 
