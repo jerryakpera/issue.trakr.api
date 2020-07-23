@@ -33,7 +33,7 @@ const swaggerOptions = {
 const swaggerDocs = swaggerJSDoc(swaggerOptions);
 app.use("/api-docs", swaggerUI.serve, swaggerUI.setup(swaggerDocs))
 
-const baseURL = config.baseURL
+const baseURL = "/habituala"
 
 // ROUTES
 const authRoute = require("./api/auth/auth");
@@ -47,8 +47,8 @@ app.use((req, res, next) => {
   error.status = 404;
   next(error);
 });
- 
- app.use((error, req, res, next) => {
+
+app.use((error, req, res, next) => {
   res.status(error.status || 500).send({
     error: {
       status: error.status || 500,
