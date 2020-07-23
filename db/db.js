@@ -5,6 +5,8 @@ const mongoose = require('mongoose');
 const env = require('../config/env');
 const dbURL = env === 'prod' ? process.env.DBURL : config.dbURL;
 
+console.log("dbURL", dbURL)
+
 // Connect to DB with user and authentication
 mongoose.connect(dbURL, {
   useNewUrlParser: true,
