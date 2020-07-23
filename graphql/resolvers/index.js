@@ -25,8 +25,14 @@ const {
 } = require("./milestone/milestone")
 
 const {
-  createJournal
+  createJournal,
+  fetchUserJournals,
+  deleteJournal
 } = require("./journal/journal")
+
+const {
+  fetchUserProfile
+} = require("./userprofile/userProfile")
 
 module.exports = {
   createWord,
@@ -51,5 +57,9 @@ module.exports = {
   deleteMilestone,
   deleteTask,
 
-  createJournal
+  createJournal,
+  fetchUserJournals,
+  deleteJournal,
+
+  fetchUserProfile
 }

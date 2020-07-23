@@ -24,4 +24,4 @@ const openJournalSchema = new mongoose.Schema({
 
 
 openJournalSchema.plugin(uniqueValidator)
-module.exports = mongoose.model("openjournal", openJournalSchema)
+module.exports = mongoose.model("openjournals", openJournalSchema)

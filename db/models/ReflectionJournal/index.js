@@ -37,4 +37,4 @@ const reflectionJournalSchema = new mongoose.Schema({
 
 
 reflectionJournalSchema.plugin(uniqueValidator)
-module.exports = mongoose.model("reflectionjournal", reflectionJournalSchema)
+module.exports = mongoose.model("reflectionjournals", reflectionJournalSchema)

@@ -34,4 +34,4 @@ const weedingJournalSchema = new mongoose.Schema({
 
 
 weedingJournalSchema.plugin(uniqueValidator)
-module.exports = mongoose.model("weedingjournal", weedingJournalSchema)
+module.exports = mongoose.model("weedingjournals", weedingJournalSchema)

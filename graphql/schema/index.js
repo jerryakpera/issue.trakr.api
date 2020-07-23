@@ -5,7 +5,9 @@ const schema = buildSchema(`
     userTasks(getTasksInput: GetTasksInput): [Task]
     milestones(getMilestonesInput: GetMilestonesInput): [Milestone]
     fetchUserRetrospects(fetchRetrospectsInput: FetchRetrospectsInput): [Retrospect]
+    fetchUserJournals(userInput: UserInput): [Journal!]
     fetchHomeBoard(fetchHomeBoardInput: FetchHomeBoardInput): HomeBoard
+    fetchUserProfile(userInput: UserInput): UserProfile
     fetchUserWords(fetchUserWordsInput: FetchUserWordsInput): [Word]
     fetchWords: [Word]
   }
@@ -21,6 +23,7 @@ const schema = buildSchema(`
     createRetrospect(retrospectInput: RetrospectInput): Retrospect
     createMilestone(milestoneInput: MilestoneInput): Milestone
     createJournal(newJournal: NewJournal): Journal
+    deleteJournal(deleteJournalInput: DeleteJournalInput): Boolean
     editMilestone(editMilestoneInput: EditMilestoneInput): Milestone
     deleteMilestone(deleteMilestoneInput: DeleteMilestoneInput): Boolean
     deleteTask(deleteTaskInput: DeleteTaskInput): Boolean
@@ -29,6 +32,15 @@ const schema = buildSchema(`
   }
 
   input FetchRetrospectsInput {
+    user: String!
+  }
+
+  input DeleteJournalInput {
+    id: String!
+    type: String!
+  }
+
+  input UserInput {
     user: String!
   }
 
@@ -248,6 +260,29 @@ const schema = buildSchema(`
     goodthings: GoodThings
     displayDate: String!
     rating: Int
+  }
+
+  type UserProfileTasks {
+    all: Int!
+    complete: Int!
+    incomplete: Int!
+  }
+
+  type UserProfileJournals {
+    all: Int!
+    open: Int!
+    weeding: Int!
+    reflection: Int!
+  }
+
+  type UserProfile {
+    userID: ID!
+    email: String!
+    username: String!
+    createdDate: String!
+    flag: Int!
+    tasks: UserProfileTasks
+    journals: UserProfileJournals
   }
 `)
 

@@ -53,6 +53,19 @@ class OpenJournal extends Journal {
       })
     })
   }
+
+  delete() {
+    return new Promise((resolve, reject) => {
+      
+      return OPENJOURNAL.findByIdAndDelete(this.journal.id)
+      .then(del => {
+        resolve()
+      })
+      .catch(err => {
+        reject(err)
+      })
+    })
+  }
 }
 
 class ReflectionJournal extends Journal {
@@ -97,6 +110,19 @@ class ReflectionJournal extends Journal {
       })
     })
   }
+
+  delete() {
+    return new Promise((resolve, reject) => {
+      
+      return REFLECTIONJOURNAL.findByIdAndDelete(this.journal.id)
+      .then(del => {
+        resolve()
+      })
+      .catch(err => {
+        reject(err)
+      })
+    })
+  }
 }
 
 class WeedingJournal extends Journal {
@@ -138,6 +164,19 @@ class WeedingJournal extends Journal {
             return
           }
         })
+      })
+    })
+  }
+  
+  delete() {
+    return new Promise((resolve, reject) => {
+      
+      return WEEDINGJOURNAL.findByIdAndDelete(this.journal.id)
+      .then(del => {
+        resolve()
+      })
+      .catch(err => {
+        reject(err)
       })
     })
   }

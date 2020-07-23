@@ -1,11 +1,9 @@
-const UserContent = require("../../../db/models/UserContent")
-// const OpenJournal = require("../../../db/models/OpenJournal")
+const UserJournals = require("../../../db/models/UserJournals")
 const _ = require("../../../modules/utils")
 
 const OpenJournal = require("../../../services/helpers/Journal").OpenJournal
 const ReflectionJournal = require("../../../services/helpers/Journal").ReflectionJournal
 const WeedingJournal = require("../../../services/helpers/Journal").WeedingJournal
-
 
 const createJournal = (args) => {
   const newJournal = {
@@ -23,15 +21,12 @@ const createJournal = (args) => {
   var journal
   
   if (newJournal.type === "open") {
-    console.log("open journal")
     journal = new OpenJournal(newJournal)
   }
   if (newJournal.type === "reflection") {
-    console.log("reflection journal")
     journal = new ReflectionJournal(newJournal)
   }
   if (newJournal.type === "weeding") {
-    console.log("weeding journal")
     journal = new WeedingJournal(newJournal)
   }
   
@@ -44,6 +39,56 @@ const createJournal = (args) => {
   })
 }
 
+const fetchUserJournals = (args) => {
+  const userQuery = {user: args.userInput.user}
+
+  return UserJournals.findOne(userQuery)
+  .populate("openjournals")
+  .populate("reflectionjournals")
+  .populate("weedingjournals")
+  .exec()
+  .then(userJournals => {
+    const userJournal = userJournals._doc
+    const journals = []
+    for (let [key, arr] of Object.entries(userJournal)) {
+      if (Array.isArray(arr)) {
+        journals.push( ...arr )
+      }
+    }
+
+    return journals 
+  })
+}
+
+const deleteJournal = (args) => {
+  const journalToDelete = {
+    type: args.deleteJournalInput.type,
+    id: args.deleteJournalInput.id
+  }
+  
+  var journal
+  
+  if (journalToDelete.type === "open") {
+    journal = new OpenJournal(journalToDelete)
+  }
+  if (journalToDelete.type === "reflection") {
+    journal = new ReflectionJournal(journalToDelete)
+  }
+  if (journalToDelete.type === "weeding") {
+    journal = new WeedingJournal(journalToDelete)
+  }
+  
+  return journal.delete()
+  .then(() => {
+    return true
+  })
+  .catch(err => {
+    return err
+  })
+}
+
 module.exports = {
-  createJournal
+  createJournal,
+  fetchUserJournals,
+  deleteJournal
 }
