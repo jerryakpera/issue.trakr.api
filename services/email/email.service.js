@@ -1,7 +1,7 @@
 const nodemailer = require("nodemailer")
 const _ = require("../../modules/utils")
 const config = require("../../config")
-const env = require("../../env")
+const env = require("../../config/env")
 
 function sendEmail(sendTo, subject, emailBody) {
   return new Promise((resolve, reject) => {
