@@ -1,6 +1,7 @@
 const nodemailer = require("nodemailer")
 const _ = require("../../modules/utils")
 const config = require("../../config")
+const env = require("../../env")
 
 function sendEmail(sendTo, subject, emailBody) {
   return new Promise((resolve, reject) => {
@@ -9,8 +10,8 @@ function sendEmail(sendTo, subject, emailBody) {
       auth: {
         secure: false,
         port: 25,
-        user: config.emailAccount,
-        pass: config.emailPassword
+        user: env === "prod" ? process.env.EMAILACCOUNT : config.emailAccount,
+        pass: env === "prod" ? process.env.EMAILPASSWORD : config.emailPassword
       },
       tls: {
         rejectUnauthorized: false
@@ -18,7 +19,7 @@ function sendEmail(sendTo, subject, emailBody) {
     });
 
     var mailOptions = {
-      from: config.emailAccount,
+      from: env === "prod" ? process.env.EMAILACCOUNT : config.emailAccount,
       to: sendTo,
       subject: subject,
       ...emailBody

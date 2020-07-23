@@ -4,9 +4,9 @@ const Schema = mongoose.Schema
 const uniqueValidator = require('mongoose-unique-validator')
 
 const refreshTokenSchema = new mongoose.Schema({
-  user: { 
-    type: Schema.Types.ObjectId, 
-    ref: 'User' 
+  user: {
+    type: Schema.Types.ObjectId,
+    ref: 'User'
   },
   token: {
     type: String,
@@ -18,8 +18,15 @@ const refreshTokenSchema = new mongoose.Schema({
   timestamps: true
 })
 
-const refreshTokenExpiresAfter = config.jwtExpiryInSeconds + 60
-refreshTokenSchema.index({"createdAt": 1}, {expiresAfterSeconds: refreshTokenExpiresAfter})
+const env = require('../../../config/env');
+const refreshTokenExpiresAfter = env === 'prod' ? process.env.JWTEXPIRYINSECONDS + 60 : config.jwtExpiryInSeconds + 60;
+
+// const refreshTokenExpiresAfter = config.jwtExpiryInSeconds + 60
+refreshTokenSchema.index({
+  "createdAt": 1
+}, {
+  expiresAfterSeconds: refreshTokenExpiresAfter
+})
 
 refreshTokenSchema.plugin(uniqueValidator)
 
