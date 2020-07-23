@@ -14,7 +14,7 @@ module.exports = {
       userID: user._id,
       role: user.role
     }, tokenSecret, {
-      expiresIn: env === "prod" ? process.env.JWTEXPIRESINSECONDS : config.jwtExpiryInSeconds
+      expiresIn: env === "prod" ? process.env.JWTEXPIRYSECONDS : config.jwtExpiryInSeconds
     })
   },
 
